@@ -1,16 +1,33 @@
+import sys
 from falkordb import FalkorDB
 
-def main():
-    db = FalkorDB(host='localhost', port=6379)
 
-    g = db.select_graph('Demo')
+def main():
+    if len(sys.argv) != 2:
+        usage()
+    cmd = sys.argv[1]
+    if cmd not in DISPATCH:
+        usage()
+
+    db = FalkorDB(host='localhost', port=6379)
+    graph = db.select_graph('Demo')
+
+    DISPATCH[cmd](graph)
+
+
+
+
+def delete(graph):
     try:
-        g.delete()
+        graph.delete()
     except Exception:
         # Graph doesn't exist yet, which is fine
         pass
 
-    res = g.query("""CREATE
+def load(graph):
+    delete(graph)
+
+    res = graph.query("""CREATE
     (alice:Person {name: "Alice", age: 30}),
     (bob:Person {name: "Bob", age: 25}),
     (carol:Person {name: "Carol", age: 27}),
@@ -36,8 +53,9 @@ def main():
     print(f"Relationships created: {res.relationships_created}")
     print()
 
-    # Get all the people
-    res = g.query("""MATCH (p:Person)
+
+def list_all_the_people(graph):
+    res = graph.query("""MATCH (p:Person)
                      RETURN p""")
 
     for row in res.result_set:
@@ -45,10 +63,8 @@ def main():
         # labels and properties
         print(row[0].properties['name'])
 
-    print()
-
-    # Get the names of the people
-    res = g.query("""MATCH (p:Person)
+def get_the_names_of_the_people(graph):
+    res = graph.query("""MATCH (p:Person)
                      RETURN p.name""")
 
     for row in res.result_set:
@@ -56,10 +72,31 @@ def main():
         # labels and properties
         # print(row[0].properties['name'])
 
-    print()
+def find_younger_people(graph):
+    res = graph.query("""MATCH (p:Person)
+                     WHERE p.age < 30
+                     RETURN p""")
 
-    # Find person by name
-    res = g.query("""MATCH (p:Person)
+    for row in res.result_set:
+        print(row[0])
+
+def find_who_knows_whom(graph):
+    res = graph.query("""MATCH (who:Person)-[:KNOWS]->(whom)
+                     RETURN who, whom""")
+
+    for who, whom in res.result_set:
+        print(f"{who.properties['name']:5} knows {whom.properties['name']}")
+
+def find_who_alice_knows(graph):
+    res = graph.query("""MATCH (p:Person)-[:KNOWS]->(other)
+                     WHERE p.name = 'Alice'
+                     RETURN other""")
+
+    for row in res.result_set:
+        print(row[0])
+
+def find_person_by_name(graph):
+    res = graph.query("""MATCH (p:Person)
                      WHERE p.name = 'Alice'
                      RETURN p""")
 
@@ -67,36 +104,23 @@ def main():
         print(row[0])
         print(row[0].properties['name'])
 
-    print()
 
+def usage():
+    cmds = ", ".join(sorted(DISPATCH.keys()))
+    print(f"Usage: {sys.argv[0]} {cmds}")
+    exit(1)
 
-    # Find younger people
-    res = g.query("""MATCH (p:Person)
-                     WHERE p.age < 30
-                     RETURN p""")
-
-    for row in res.result_set:
-        print(row[0])
-
-
-    print()
-
-    print("Find who knows whom")
-    res = g.query("""MATCH (who:Person)-[:KNOWS]->(whom)
-                     RETURN who, whom""")
-
-    for who, whom in res.result_set:
-        print(f"{who.properties['name']:5} knows {whom.properties['name']}")
-
-    print()
-
-    print("Find who Alices knows")
-    res = g.query("""MATCH (p:Person)-[:KNOWS]->(other)
-                     WHERE p.name = 'Alice'
-                     RETURN other""")
-
-    for row in res.result_set:
-        print(row[0])
+DISPATCH = {
+    "load": load,
+    "people": list_all_the_people,
+    "names": get_the_names_of_the_people,
+    "younger": find_younger_people,
+    "who": find_who_knows_whom,
+    "alice": find_who_alice_knows,
+    "by_name": find_person_by_name,
+    "delete": delete,
+}
 
 if __name__ == "__main__":
     main()
+
