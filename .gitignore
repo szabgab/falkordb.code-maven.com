@@ -4,4 +4,4 @@
 book/
 /html/
 __pycache__
-
+uv.lock
