@@ -3,10 +3,10 @@ from falkordb import FalkorDB
 
 def main():
     # Connect to FalkorDB
-    db = FalkorDB(host='localhost', port=6379)
+    db = FalkorDB(host="localhost", port=6379)
 
     # Create the 'MotoGP' graph
-    g = db.select_graph('MotoGP')
+    g = db.select_graph("MotoGP")
 
     # Clear out this graph in case you've run this script before.
     # Check if the graph exists before trying to delete it.
@@ -27,12 +27,14 @@ def main():
                      RETURN r.name""")
 
     for row in res.result_set:
-        print(row[0]) # Prints: "Valentino Rossi"
+        print(row[0])  # Prints: "Valentino Rossi"
 
     # Query how many riders represent team Ducati ?
-    res = g.query("""MATCH (r:Rider)-[:rides]->(t:Team {name:'Ducati'}) RETURN count(r)""")
+    res = g.query(
+        """MATCH (r:Rider)-[:rides]->(t:Team {name:'Ducati'}) RETURN count(r)"""
+    )
 
-    print(res.result_set[0][0]) # Prints: 1
+    print(res.result_set[0][0])  # Prints: 1
 
 
 if __name__ == "__main__":

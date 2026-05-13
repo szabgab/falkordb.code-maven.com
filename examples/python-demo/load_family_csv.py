@@ -4,7 +4,6 @@ from urllib.request import urlopen
 
 from falkordb import FalkorDB
 
-
 CSV_URL = "https://raw.githubusercontent.com/szabgab/exercises.code-maven.com/refs/heads/main/examples/data/family.csv"
 
 
@@ -12,24 +11,31 @@ def download_csv_to_memory(url: str) -> list[dict[str, str]]:
     with urlopen(url, timeout=30) as response:
         csv_text = response.read().decode("utf-8")
 
-    reader = csv.DictReader(StringIO(csv_text), fieldnames=[name.strip() for name in csv.DictReader(StringIO(csv_text)).fieldnames])
+    reader = csv.DictReader(
+        StringIO(csv_text),
+        fieldnames=[
+            name.strip() for name in csv.DictReader(StringIO(csv_text)).fieldnames
+        ],
+    )
     return list(reader)
 
-def load_data(rows: list[dict[str, str]]) -> None:
-    db = FalkorDB(host='localhost', port=6379)
 
-    g = db.select_graph('Family')
+def load_data(rows: list[dict[str, str]]) -> None:
+    db = FalkorDB(host="localhost", port=6379)
+
+    g = db.select_graph("Family")
     try:
         g.delete()
     except Exception:
         # Graph doesn't exist yet, which is fine
         pass
 
-
     for row in rows:
         row = {key: value.strip() for key, value in row.items()}
-        print(row['Name'])
-        res = g.query(f"""CREATE (person:Person {{name: $name}})""", {"name": row['Name']})
+        print(row["Name"])
+        res = g.query(
+            f"""CREATE (person:Person {{name: $name}})""", {"name": row["Name"]}
+        )
 
 
 def main() -> None:
