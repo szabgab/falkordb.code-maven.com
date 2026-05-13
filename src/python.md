@@ -15,3 +15,6 @@ Edit the file.
 ```shell
 $ uv run main.py
 ```
+
+
+{% embed include file="examples/python-demo/demo.py" %}
