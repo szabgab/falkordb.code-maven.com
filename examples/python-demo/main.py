@@ -15,7 +15,7 @@ def main():
     except Exception:
         # Graph doesn't exist yet, which is fine
         pass
-    
+
     g.query("""CREATE
                (:Rider {name:'Valentino Rossi'})-[:rides]->(:Team {name:'Yamaha'}),
                (:Rider {name:'Dani Pedrosa'})-[:rides]->(:Team {name:'Honda'}),

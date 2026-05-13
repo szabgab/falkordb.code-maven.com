@@ -31,7 +31,7 @@ def main():
     (dave)-[:LIVES_IN]->(paris),
     (eve)-[:LIVES_IN]->(london);
     """)
-    
+
     print(f"Nodes created: {res.nodes_created}")
     print(f"Relationships created: {res.relationships_created}")
     print()

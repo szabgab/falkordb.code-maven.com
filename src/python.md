@@ -1,5 +1,7 @@
 # Python
 
+[FalkorDB on PyPI](https://pypi.org/project/FalkorDB/)
+
 
 ```shell
 $ mkdir demo
@@ -8,7 +10,7 @@ $ uv init
 $ uv add falkordb
 ```
 
-Edit the file.
+Edit the `maon.py` file.
 
 {% embed include file="examples/python-demo/main.py" %}
 
@@ -17,4 +19,3 @@ $ uv run main.py
 ```
 
 
-{% embed include file="examples/python-demo/demo.py" %}
