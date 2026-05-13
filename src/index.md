@@ -8,7 +8,6 @@
 * [FalkorDB on LinkedIn](https://www.linkedin.com/company/falkordb/)
 
 
-* [OpenCypher](https://opencypher.org/) query language
 
 
 
