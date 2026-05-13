@@ -10,12 +10,7 @@ $ uv init
 $ uv add falkordb
 ```
 
-Edit the `maon.py` file.
+Remove the `main.py` file.
 
-{% embed include file="examples/python-demo/main.py" %}
-
-```shell
-$ uv run main.py
-```
 
 
