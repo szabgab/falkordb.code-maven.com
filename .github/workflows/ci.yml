@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout site source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Download mdBook
         run: |
@@ -44,7 +44,7 @@ jobs:
           perl -i -p -e 's{(href="[a-zA-Z0-9.][^"]+)\.html"}{$1"}g' book/*.html book/toc.js
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: book/
 
@@ -58,5 +58,5 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
 
