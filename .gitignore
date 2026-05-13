@@ -1,0 +1,7 @@
+/_site/
+*.bak
+.ipynb_checkpoints/
+book/
+/html/
+__pycache__
+
