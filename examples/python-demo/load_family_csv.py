@@ -41,17 +41,15 @@ def load(graph) -> None:
 
     for row in rows:
         row = {key: value.strip() for key, value in row.items()}
-        #print(row)
-        #print(row["Name"])
-        res = graph.query(
-            "CREATE (person:Person {name: $name})", {"name": row["Name"]}
-        )
+        # print(row)
+        # print(row["Name"])
+        res = graph.query("CREATE (person:Person {name: $name})", {"name": row["Name"]})
         # if row["Father"]:
         #     res = graph.query(
         #         """CREATE ("Abraham")-[:FATHER]->($father)""", {"father": row["Father"]}
         #     )
         #     print(res)
-# "child": row["Name"], 
+        # "child": row["Name"],
         res = graph.query(
             """CREATE ("Abraham")-[:FATHER]->()""", {"father": row["Father"]}
         )
