@@ -11,9 +11,6 @@
 * Social network
 * recommendation system
 
+* Placeholders - not mentioned in the documentation
 
-* Setup relationships between people
-A knows B
-and
-A likes B
 
