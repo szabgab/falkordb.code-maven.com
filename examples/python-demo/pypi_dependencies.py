@@ -4,6 +4,9 @@ import sys
 from urllib.error import HTTPError, URLError
 from urllib.request import urlopen
 
+from falkordb import FalkorDB
+
+GRAPH_NAME = "PyPI"
 PYPI_URL = "https://pypi.org/pypi/{package}/json"
 REQUIREMENT_NAME = re.compile(r"^\s*([A-Za-z0-9][A-Za-z0-9._-]*)")
 
@@ -41,6 +44,50 @@ def extract_dependency_names(requires_dist: list[str] | None) -> list[str]:
     return dependencies
 
 
+def normalize_package_name(name: str) -> str:
+    return name.lower().replace("_", "-")
+
+
+def save_package(graph, package_name: str) -> None:
+    graph.query(
+        """
+        MERGE (package:Package {normalized_name: $normalized_name})
+        ON CREATE SET package.name = $package_name
+        SET package.name = $package_name
+        """,
+        {
+            "normalized_name": normalize_package_name(package_name),
+            "package_name": package_name,
+        },
+    )
+
+
+def save_dependencies(graph, package_name: str, dependencies: list[str]) -> None:
+    if not dependencies:
+        return
+
+    graph.query(
+        """
+        MATCH (package:Package {normalized_name: $package_normalized_name})
+        UNWIND $dependencies AS dependency
+        MERGE (dep:Package {normalized_name: dependency.normalized_name})
+        ON CREATE SET dep.name = dependency.name
+        SET dep.name = dependency.name
+        MERGE (package)-[:DEPENDS_ON]->(dep)
+        """,
+        {
+            "package_normalized_name": normalize_package_name(package_name),
+            "dependencies": [
+                {
+                    "name": dependency,
+                    "normalized_name": normalize_package_name(dependency),
+                }
+                for dependency in dependencies
+            ],
+        },
+    )
+
+
 def usage() -> None:
     print(f"Usage: {sys.argv[0]} PACKAGE_NAME")
     raise SystemExit(1)
@@ -63,9 +110,18 @@ def main() -> None:
         print(f"Failed to reach PyPI: {error.reason}", file=sys.stderr)
         raise SystemExit(3) from error
 
+    package_name = metadata["info"]["name"]
     dependencies = extract_dependency_names(metadata["info"].get("requires_dist"))
+
+    db = FalkorDB(host="localhost", port=6379)
+    graph = db.select_graph(GRAPH_NAME)
+
+    save_package(graph, package_name)
+    save_dependencies(graph, package_name, dependencies)
+
+    print(package_name)
     for dependency in dependencies:
-        print(dependency)
+        print(f"{package_name} -> {dependency}")
 
 
 if __name__ == "__main__":
