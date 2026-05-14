@@ -9,4 +9,5 @@
   - [MotoGP](./python-motogp.md)
   - [People and cities](./python-people-and-cities.md)
   - [Family tree in Python](./python-family-tree.md)
+  - [Examples](./python-examples.md)
 
