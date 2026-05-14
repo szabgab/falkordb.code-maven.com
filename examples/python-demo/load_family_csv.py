@@ -1,3 +1,4 @@
+import sys
 import csv
 from io import StringIO
 from urllib.request import urlopen
@@ -20,31 +21,65 @@ def download_csv_to_memory(url: str) -> list[dict[str, str]]:
     return list(reader)
 
 
-def load_data(rows: list[dict[str, str]]) -> None:
-    db = FalkorDB(host="localhost", port=6379)
-
-    g = db.select_graph("Family")
+def delete(graph):
     try:
-        g.delete()
+        graph.delete()
     except Exception:
         # Graph doesn't exist yet, which is fine
         pass
 
-    for row in rows:
-        row = {key: value.strip() for key, value in row.items()}
-        print(row["Name"])
-        res = g.query(
-            f"""CREATE (person:Person {{name: $name}})""", {"name": row["Name"]}
-        )
 
+def load(graph) -> None:
 
-def main() -> None:
     rows = download_csv_to_memory(CSV_URL)
-    load_data(rows)
+
     # print(f"Loaded {len(rows)} rows into memory")
     # if rows:
     #     print("First row:", rows[0])
 
+    delete(graph)
+
+    for row in rows:
+        row = {key: value.strip() for key, value in row.items()}
+        #print(row)
+        #print(row["Name"])
+        res = graph.query(
+            "CREATE (person:Person {name: $name})", {"name": row["Name"]}
+        )
+        # if row["Father"]:
+        #     res = graph.query(
+        #         """CREATE ("Abraham")-[:FATHER]->($father)""", {"father": row["Father"]}
+        #     )
+        #     print(res)
+# "child": row["Name"], 
+        res = graph.query(
+            """CREATE ("Abraham")-[:FATHER]->()""", {"father": row["Father"]}
+        )
+
+
+def main() -> None:
+    if len(sys.argv) != 2:
+        usage()
+    cmd = sys.argv[1]
+    if cmd not in DISPATCH:
+        usage()
+
+    db = FalkorDB(host="localhost", port=6379)
+    graph = db.select_graph("Family")
+
+    DISPATCH[cmd](graph)
+
+
+def usage():
+    cmds = ", ".join(sorted(DISPATCH.keys()))
+    print(f"Usage: {sys.argv[0]} {cmds}")
+    exit(1)
+
+
+DISPATCH = {
+    "load": load,
+    "delete": delete,
+}
 
 if __name__ == "__main__":
     main()
