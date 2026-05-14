@@ -48,16 +48,18 @@ def normalize_package_name(name: str) -> str:
     return name.lower().replace("_", "-")
 
 
-def save_package(graph, package_name: str) -> None:
+def save_package(graph, package_name: str, leaf: bool) -> None:
     graph.query(
         """
         MERGE (package:Package {normalized_name: $normalized_name})
         ON CREATE SET package.name = $package_name
-        SET package.name = $package_name
+        SET package.name = $package_name,
+            package.leaf = $leaf
         """,
         {
             "normalized_name": normalize_package_name(package_name),
             "package_name": package_name,
+            "leaf": leaf,
         },
     )
 
@@ -116,7 +118,7 @@ def main() -> None:
     db = FalkorDB(host="localhost", port=6379)
     graph = db.select_graph(GRAPH_NAME)
 
-    save_package(graph, package_name)
+    save_package(graph, package_name, leaf=not dependencies)
     save_dependencies(graph, package_name, dependencies)
 
     print(package_name)
