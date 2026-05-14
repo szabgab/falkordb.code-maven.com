@@ -1,6 +1,6 @@
+import argparse
 import json
 import re
-import sys
 from urllib.error import HTTPError, URLError
 from urllib.request import urlopen
 
@@ -90,16 +90,34 @@ def save_dependencies(graph, package_name: str, dependencies: list[str]) -> None
     )
 
 
-def usage() -> None:
-    print(f"Usage: {sys.argv[0]} PACKAGE_NAME")
-    raise SystemExit(1)
+def delete_graph(graph) -> None:
+    graph.delete()
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("package_name", nargs="?")
+    parser.add_argument("--delete", action="store_true", dest="delete_graph")
+    args = parser.parse_args()
+
+    if args.delete_graph == (args.package_name is not None):
+        parser.error("provide either PACKAGE_NAME or --delete")
+
+    return args
 
 
 def main() -> None:
-    if len(sys.argv) != 2:
-        usage()
+    args = parse_args()
 
-    package_name = sys.argv[1]
+    db = FalkorDB(host="localhost", port=6379)
+    graph = db.select_graph(GRAPH_NAME)
+
+    if args.delete_graph:
+        delete_graph(graph)
+        print(f"Deleted graph {GRAPH_NAME}")
+        return
+
+    package_name = args.package_name
 
     try:
         metadata = fetch_package_metadata(package_name)
@@ -114,9 +132,6 @@ def main() -> None:
 
     package_name = metadata["info"]["name"]
     dependencies = extract_dependency_names(metadata["info"].get("requires_dist"))
-
-    db = FalkorDB(host="localhost", port=6379)
-    graph = db.select_graph(GRAPH_NAME)
 
     save_package(graph, package_name, leaf=not dependencies)
     save_dependencies(graph, package_name, dependencies)
