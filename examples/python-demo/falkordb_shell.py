@@ -21,7 +21,12 @@ def setup_history() -> None:
 def print_result(result) -> None:
     if result.result_set:
         for row in result.result_set:
-            print(row)
+            for item in row:
+                print(type(item).__name__)
+                print(f"id: {item.id}")
+                print(f"alias: {item.alias}")
+                print(f"labels: {item.labels}")
+                print(f"properties: {item.properties}")
     else:
         print("OK")
 
