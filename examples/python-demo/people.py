@@ -10,7 +10,7 @@ def main():
         usage()
 
     db = FalkorDB(host="localhost", port=6379)
-    graph = db.select_graph("Demo")
+    graph = db.select_graph("People")
 
     DISPATCH[cmd](graph)
 
