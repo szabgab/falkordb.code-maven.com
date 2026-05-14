@@ -1,6 +1,7 @@
 import argparse
 import json
 import re
+import sys
 from urllib.error import HTTPError, URLError
 from urllib.request import urlopen
 
@@ -64,6 +65,17 @@ def save_package(graph, package_name: str, leaf: bool) -> None:
     )
 
 
+def clear_dependencies(graph, package_name: str) -> None:
+    graph.query(
+        """
+        MATCH (package:Package {normalized_name: $normalized_name})
+        OPTIONAL MATCH (package)-[rel:DEPENDS_ON]->()
+        DELETE rel
+        """,
+        {"normalized_name": normalize_package_name(package_name)},
+    )
+
+
 def save_dependencies(graph, package_name: str, dependencies: list[str]) -> None:
     if not dependencies:
         return
@@ -94,14 +106,59 @@ def delete_graph(graph) -> None:
     graph.delete()
 
 
+def fetch_package_metadata_or_exit(package_name: str) -> dict:
+    try:
+        return fetch_package_metadata(package_name)
+    except HTTPError as error:
+        if error.code == 404:
+            print(f"Package not found on PyPI: {package_name}", file=sys.stderr)
+            raise SystemExit(2) from error
+        raise
+    except URLError as error:
+        print(f"Failed to reach PyPI: {error.reason}", file=sys.stderr)
+        raise SystemExit(3) from error
+
+
+def import_packages(graph, package_names: list[str]) -> None:
+    pending = list(reversed(package_names))
+    processed: set[str] = set()
+
+    while pending:
+        requested_name = pending.pop()
+        requested_normalized_name = normalize_package_name(requested_name)
+        if requested_normalized_name in processed:
+            continue
+
+        metadata = fetch_package_metadata_or_exit(requested_name)
+        package_name = metadata["info"]["name"]
+        normalized_package_name = normalize_package_name(package_name)
+        if normalized_package_name in processed:
+            continue
+
+        dependencies = extract_dependency_names(metadata["info"].get("requires_dist"))
+
+        save_package(graph, package_name, leaf=not dependencies)
+        clear_dependencies(graph, package_name)
+        save_dependencies(graph, package_name, dependencies)
+
+        processed.add(requested_normalized_name)
+        processed.add(normalized_package_name)
+
+        print(package_name)
+        for dependency in dependencies:
+            print(f"{package_name} -> {dependency}")
+            if normalize_package_name(dependency) not in processed:
+                pending.append(dependency)
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
-    parser.add_argument("package_name", nargs="?")
+    parser.add_argument("package_names", nargs="*")
     parser.add_argument("--delete", action="store_true", dest="delete_graph")
     args = parser.parse_args()
 
-    if args.delete_graph == (args.package_name is not None):
-        parser.error("provide either PACKAGE_NAME or --delete")
+    if args.delete_graph == bool(args.package_names):
+        parser.error("provide PACKAGE_NAME [PACKAGE_NAME ...] or --delete")
 
     return args
 
@@ -117,28 +174,7 @@ def main() -> None:
         print(f"Deleted graph {GRAPH_NAME}")
         return
 
-    package_name = args.package_name
-
-    try:
-        metadata = fetch_package_metadata(package_name)
-    except HTTPError as error:
-        if error.code == 404:
-            print(f"Package not found on PyPI: {package_name}", file=sys.stderr)
-            raise SystemExit(2) from error
-        raise
-    except URLError as error:
-        print(f"Failed to reach PyPI: {error.reason}", file=sys.stderr)
-        raise SystemExit(3) from error
-
-    package_name = metadata["info"]["name"]
-    dependencies = extract_dependency_names(metadata["info"].get("requires_dist"))
-
-    save_package(graph, package_name, leaf=not dependencies)
-    save_dependencies(graph, package_name, dependencies)
-
-    print(package_name)
-    for dependency in dependencies:
-        print(f"{package_name} -> {dependency}")
+    import_packages(graph, args.package_names)
 
 
 if __name__ == "__main__":
