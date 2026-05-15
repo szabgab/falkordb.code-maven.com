@@ -7,12 +7,18 @@ from falkordb import FalkorDB
 
 HISTORY_FILE = Path.home() / ".falkordb_shell_history"
 PROMPT = "falkordb> "
-EXIT_COMMANDS = {"exit", "quit", ".exit", ".quit"}
-HELP_COMMANDS = {"help", ".help", "?"}
+EXIT_COMMANDS = {".exit", ".quit"}
+HELP_COMMANDS = {".help"}
 
 HELP = """
-.help, help, ? - Show this help page.
-.exit, .quit, exit, quit - Quit the REPL
+.help, - Show this help page.
+.exit, .quit - Quit the REPL.
+.intro - Introduction to the OpenCyper commands.
+"""
+
+INTRO = """
+# Create a `Node` with the `Person` label (type) and the `name` attribute (property)
+CREATE (:Person {name: "Alice"})
 """
 
 
@@ -59,6 +65,10 @@ def run_shell(graph) -> None:
         if not command:
             continue
 
+        if command == ".intro":
+            print(INTRO)
+            continue
+
         if command in HELP_COMMANDS:
             print(HELP)
             continue
@@ -82,6 +92,8 @@ def main() -> None:
     db = FalkorDB(host=args.host, port=args.port)
     graph = db.select_graph(args.graph)
 
+    print("Welcome to the interactive FalkorDB shell.")
+    print("Type .help to see the help.")
     run_shell(graph)
 
 
