@@ -18,7 +18,9 @@ def download_csv_to_memory(url: str) -> list[dict[str, str]]:
             name.strip() for name in csv.DictReader(StringIO(csv_text)).fieldnames
         ],
     )
-    return list(reader)
+    rows = list(reader)
+    rows.pop(0)
+    return rows
 
 
 def delete(graph):
@@ -41,18 +43,17 @@ def load(graph) -> None:
 
     for row in rows:
         row = {key: value.strip() for key, value in row.items()}
-        # print(row)
+        print(row)
         # print(row["Name"])
         res = graph.query("CREATE (person:Person {name: $name})", {"name": row["Name"]})
-        # if row["Father"]:
-        #     res = graph.query(
-        #         """CREATE ("Abraham")-[:FATHER]->($father)""", {"father": row["Father"]}
-        #     )
-        #     print(res)
-        # "child": row["Name"],
-        res = graph.query(
-            """CREATE ("Abraham")-[:FATHER]->()""", {"father": row["Father"]}
-        )
+        if row["Father"]:
+            res = graph.query(
+                """
+                   MATCH (c:Person {name: $child}), (f:Person {name: $father})
+                       MERGE (c)-[:FATHER]->(f)
+                """,
+                {"child": row["Name"], "father": row["Father"]}
+            )
 
 
 def main() -> None:
