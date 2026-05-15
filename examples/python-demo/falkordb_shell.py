@@ -8,6 +8,12 @@ from falkordb import FalkorDB
 HISTORY_FILE = Path.home() / ".falkordb_shell_history"
 PROMPT = "falkordb> "
 EXIT_COMMANDS = {"exit", "quit", ".exit", ".quit"}
+HELP_COMMANDS = {"help", ".help", "?"}
+
+HELP = """
+.help, help, ? - Show this help page.
+.exit, .quit, exit, quit - Quit the REPL
+"""
 
 
 def setup_history() -> None:
@@ -51,6 +57,10 @@ def run_shell(graph) -> None:
             continue
 
         if not command:
+            continue
+
+        if command in HELP_COMMANDS:
+            print(HELP)
             continue
 
         if command in EXIT_COMMANDS:
