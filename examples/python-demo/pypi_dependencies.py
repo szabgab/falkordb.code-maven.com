@@ -107,28 +107,24 @@ def delete_graph(graph) -> None:
 
 
 def top_packages_by_cumulative_dependencies(graph) -> list[tuple[str, int]]:
-    result = graph.query(
-        """
+    result = graph.query("""
         MATCH (package:Package)
         OPTIONAL MATCH (package)-[:DEPENDS_ON*1..]->(dependency:Package)
         RETURN package.name, count(DISTINCT dependency) AS dependency_count
         ORDER BY dependency_count DESC, package.name ASC
         LIMIT 10
-        """
-    )
+        """)
     return [(name, count) for name, count in result.result_set]
 
 
 def top_packages_by_usage(graph) -> list[tuple[str, int]]:
-    result = graph.query(
-        """
+    result = graph.query("""
         MATCH (dependency:Package)
         OPTIONAL MATCH (package:Package)-[:DEPENDS_ON*1..]->(dependency)
         RETURN dependency.name, count(DISTINCT package) AS usage_count
         ORDER BY usage_count DESC, dependency.name ASC
         LIMIT 10
-        """
-    )
+        """)
     return [(name, count) for name, count in result.result_set]
 
 

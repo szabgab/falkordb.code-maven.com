@@ -52,7 +52,7 @@ def load(graph) -> None:
                    MATCH (c:Person {name: $child}), (f:Person {name: $father})
                        MERGE (c)-[:FATHER]->(f)
                 """,
-                {"child": row["Name"], "father": row["Father"]}
+                {"child": row["Name"], "father": row["Father"]},
             )
 
 
