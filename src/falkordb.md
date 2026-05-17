@@ -7,4 +7,9 @@
 * [FalkorDB youtube channel](https://www.youtube.com/@FalkorDB)
 * [FalkorDB on LinkedIn](https://www.linkedin.com/company/falkordb/)
 
+---
+
+* [falkordb-cli](https://github.com/FalkorDB/falkordb-cli/)
+* [falkordb-shell](https://crates.io/crates/falkordb-shell)
+
 
