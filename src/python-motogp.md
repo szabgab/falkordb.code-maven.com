@@ -1,4 +1,4 @@
-# MotoGP
+# MotoGP in Python
 
 This example is based on the one on the front page of the [FalkorDB documentation](https://docs.falkordb.com/)
 

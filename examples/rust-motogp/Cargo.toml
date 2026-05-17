@@ -1,0 +1,8 @@
+[package]
+name = "motogp"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+falkordb = { version = "0.2.1", features = ["tokio"] }
+tokio = { version = "1.52.3", features = ["full"] }
