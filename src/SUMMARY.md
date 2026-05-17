@@ -15,4 +15,5 @@
   - [Python dependencies](./python-dependencies.md)
 - [Rust](./rust.md)
   - [MotoGP in Rust](./rust-motogp.md)
+  - [Manual in Rust](./rust-manual.md)
 
