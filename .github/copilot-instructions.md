@@ -28,7 +28,7 @@ This repository is an mdBook-based site with runnable examples under `examples/`
 ## `examples/rust-movielens`
 
 - The dataset lives in `examples/rust-movielens/ml-latest-small/`.
-- The program should treat `--load` as the entry point for importing MovieLens CSV data into the `Movielens` graph.
+- The program should support `--load` for importing MovieLens CSV data and `--delete` for removing the `Movielens` graph.
 - Keep the implementation async with `tokio`.
 - Preserve the current graph model:
   - `(:Movie {movie_id, title, genres, imdb_id, tmdb_id})`

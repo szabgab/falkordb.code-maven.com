@@ -17,6 +17,10 @@ type AppResult<T> = Result<T, Box<dyn Error + Send + Sync>>;
 #[derive(Debug, Parser)]
 #[command(author, version, about, long_about = None, arg_required_else_help = true)]
 struct Cli {
+    /// Delete the MovieLens graph from FalkorDB.
+    #[arg(long)]
+    delete: bool,
+
     /// Load the MovieLens CSV files into FalkorDB.
     #[arg(long)]
     load: bool,
@@ -64,7 +68,7 @@ struct TagRecord {
 async fn main() -> AppResult<()> {
     let cli = Cli::parse();
 
-    if cli.load {
+    if cli.delete || cli.load {
         let connection_info: FalkorConnectionInfo = DEFAULT_FALKORDB_URL.try_into()?;
         let client = FalkorClientBuilder::new_async()
             .with_connection_info(connection_info)
@@ -72,10 +76,17 @@ async fn main() -> AppResult<()> {
             .await?;
 
         let mut graph = client.select_graph(GRAPH_NAME);
-        let data_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join(DATA_DIR);
 
-        load_dataset(&mut graph, &data_dir).await?;
-        println!("Loaded MovieLens data into the {GRAPH_NAME} graph.");
+        if cli.delete {
+            graph.delete().await?;
+            println!("Deleted the {GRAPH_NAME} graph.");
+        }
+
+        if cli.load {
+            let data_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join(DATA_DIR);
+            load_dataset(&mut graph, &data_dir).await?;
+            println!("Loaded MovieLens data into the {GRAPH_NAME} graph.");
+        }
     }
 
     Ok(())
@@ -307,15 +318,28 @@ mod tests {
     fn parses_load_flag() {
         let cli = Cli::parse_from(["movielens", "--load"]);
         assert!(cli.load);
+        assert!(!cli.delete);
     }
 
     #[test]
-    fn command_defines_load_flag() {
+    fn parses_delete_flag() {
+        let cli = Cli::parse_from(["movielens", "--delete"]);
+        assert!(cli.delete);
+        assert!(!cli.load);
+    }
+
+    #[test]
+    fn command_defines_load_and_delete_flags() {
         let command = Cli::command();
         assert!(
             command
                 .get_arguments()
                 .any(|arg| arg.get_long() == Some("load"))
+        );
+        assert!(
+            command
+                .get_arguments()
+                .any(|arg| arg.get_long() == Some("delete"))
         );
     }
 
