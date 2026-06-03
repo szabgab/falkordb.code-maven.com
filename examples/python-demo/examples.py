@@ -65,7 +65,8 @@ def main() -> None:
     if cmd not in DISPATCH:
         usage()
 
-    db = FalkorDB(host="localhost", port=6379)
+    #db = FalkorDB(host="localhost", port=6379)
+    db = FalkorDB(host="falkordb", port=6379)
     graph = db.select_graph("Examples")
 
     DISPATCH[cmd](graph)
