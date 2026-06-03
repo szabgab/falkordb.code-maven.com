@@ -1,22 +1,16 @@
 use strict;
 use warnings;
+use lib 't/lib';
+use FalkorDBTests qw(get_connection_details);
 use Test::More;
 use FalkorDB;
 use Redis::Fast;
 
-if (!defined $ENV{FALKORDB} || $ENV{FALKORDB} eq '') {
-    plan skip_all => 'FALKORDB environment variable is not set';
-}
+my ($host, $port) = get_connection_details();
 plan tests => 30;
 
 # Report the skill we are using
 diag("Using skill: increase test coverage");
-
-my ($host, $port) = ($ENV{FALKORDB}, 6379);
-if ($ENV{FALKORDB} =~ /^(.*):(\d+)$/) {
-    $host = $1;
-    $port = $2;
-}
 
 # 1. Connect with existing Redis::Fast object
 my $r_fast = Redis::Fast->new(server => "$host:$port");
