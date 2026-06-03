@@ -114,7 +114,7 @@ sub _serialize_param {
         
         # Handle boolean wrappers (e.g. JSON::PP::Boolean, Types::Serialiser::Boolean)
         if ($ref_type eq 'JSON::PP::Boolean' || $ref_type eq 'Types::Serialiser::Boolean') {
-            return $val ? 'true' : 'false';
+            return $$val ? 'true' : 'false';
         }
         elsif ($ref_type eq 'ARRAY') {
             my @elems = map { _serialize_param($_) } @$val;
