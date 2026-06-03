@@ -13,6 +13,7 @@
   - [Family tree in Python](./python-family-tree.md)
   - [Examples](./python-examples.md)
   - [Python dependencies](./python-dependencies.md)
+  - [Python Docker compose](./python-docker-compose.md)
 - [Rust](./rust.md)
   - [MotoGP in Rust](./rust-motogp.md)
   - [Manual in Rust](./rust-manual.md)

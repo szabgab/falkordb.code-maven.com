@@ -1,0 +1,26 @@
+services:
+  falkordb:
+    image: falkordb/falkordb:latest
+    container_name: falkor
+    ports:
+      - "6379:6379"
+      - "3000:3000"
+    volumes:
+      - ./data:/var/lib/falkordb/data
+    environment:
+      REDIS_ARGS: "--appendonly yes"
+    restart: unless-stopped
+  client:
+    #image: redis:latest
+    image: szabgab/python:latest
+    container_name: falkor-client
+    depends_on:
+      - falkordb
+    stdin_open: true
+    user: ubuntu
+    tty: true
+    working_dir: /opt
+    volumes:
+      - .:/opt
+      - $HOME/.copilot/:/home/ubuntu/.copilot
+      - $HOME/.gemini/:/home/ubuntu/.gemini

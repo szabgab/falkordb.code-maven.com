@@ -37,7 +37,7 @@ docker stop falkor
 TBD
 
 ```
-docker run -d --name falkordb -v falkordb_data:/var/lib/falkordb/data -p 6379:6379 falkordb/falkordb
+docker run  -p 6379:6379 -p 3000:3000 --rm --name falkor -v falkordb_data:/var/lib/falkordb/data falkordb/falkordb:latest
 ```
 
 

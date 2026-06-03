@@ -39,11 +39,11 @@ def run(graph):
 
         # Update all the Person Nodes where the name is Alice adding a new attribute
         # As we have 2 nodes mathching, this will update both.
-        MATCH (p:Person {name: 'Alice'}) SET p.age = 42 RETURN p
+        """MATCH (p:Person {name: 'Alice'}) SET p.age = 42 RETURN p"""
 
 
         # Delete all the nodes (and thus all the relationships)
-        """MATCH (n) DETACH DELETE n"""
+        #"""MATCH (n) DETACH DELETE n"""
 
         # TODO
         """CREATE (:Person {name: 'Jane'})-[:knows]->(:Person {name: 'Joe'})""",
