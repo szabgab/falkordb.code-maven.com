@@ -7,7 +7,7 @@
 docker run -p 6379:6379 -p 3000:3000 -it --rm falkordb/falkordb:latest
 ```
 
-## Persistand storage (in the container)
+## Persistant storage (in the container)
 
 * Start FalkorDB locally and call the container `falkor` to make it easy to restart.
 
@@ -35,4 +35,9 @@ docker stop falkor
 ## Persistand storage (outside the container)
 
 TBD
+
+```
+docker run -d --name falkordb -v falkordb_data:/var/lib/falkordb/data -p 6379:6379 falkordb/falkordb
+```
+
 
