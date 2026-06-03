@@ -1,0 +1,5 @@
+# perltidy configuration file
+-l=100   # Max line width
+-i=4     # Indent level is 4 spaces
+-nt      # Do not use tabs
+-ole=unix # Unix line endings
