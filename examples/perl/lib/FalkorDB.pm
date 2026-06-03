@@ -2,59 +2,9 @@ package FalkorDB;
 
 use strict;
 use warnings;
-use Redis;
+use Redis::Fast;
 use Carp qw(croak);
 use FalkorDB::Graph;
-
-# Monkey-patch Redis to prevent splitting of module commands (containing dots) by underscores
-no warnings 'redefine';
-*Redis::__send_command = sub {
-    my $self = shift;
-    my $cmd  = uc(shift);
-    my $deb  = $self->{debug};
-
-    if ($self->{sock} && ($self->{pid} || 0) != $$) {
-        $self->connect;
-    }
-
-    my $sock = $self->{sock}
-        || $self->__throw_reconnect('Not connected to any server');
-
-    if ($deb) {
-        require Data::Dumper;
-        warn "[SEND] $cmd ", Data::Dumper::Dumper([@_]);
-    }
-
-    my @cmd;
-    if ($cmd =~ /\./) {
-        @cmd = ($cmd);
-    } else {
-        @cmd = split /_/, $cmd;
-    }
-
-    my $n_elems = scalar(@_) + scalar(@cmd);
-    my $buf     = "*$n_elems\r\n";
-    for my $bin (@cmd, @_) {
-        utf8::downgrade($bin, 1)
-            or croak("command sent is not an octet sequence in the native encoding (Latin-1). Consider using debug mode to see the command itself.");
-        $buf .= defined($bin) ? '$' . length($bin) . "\r\n$bin\r\n" : "\$-1\r\n";
-    }
-
-    my $status = $self->__try_read_sock($sock);
-    $self->__throw_reconnect('Not connected to any server')
-        unless defined $status;
-
-    warn "[SEND RAW] $buf" if $deb;
-    while ($buf) {
-        my $len = syswrite $sock, $buf, length $buf;
-        $self->__throw_reconnect("Could not write to Redis server: $!")
-            unless defined $len;
-        substr $buf, 0, $len, "";
-    }
-
-    return;
-};
-
 
 our $VERSION = '0.01';
 
@@ -77,7 +27,7 @@ sub new {
             $redis_args{password} = $args{password};
         }
         
-        $redis = Redis->new(%redis_args);
+        $redis = Redis::Fast->new(%redis_args);
         
         # If username is provided, we can attempt AUTH (RESP3 uses AUTH username password)
         # But for empty username/password as requested, we don't need to authenticate.
@@ -110,13 +60,19 @@ sub graph {
 
 sub delete_graph {
     my ($self, $name) = @_;
-    my $res = $self->{redis}->__std_cmd("GRAPH.DELETE", $name);
-    return $res eq 'OK';
+    my ($res, $error) = $self->{redis}->__std_cmd("GRAPH.DELETE", $name);
+    if (defined $error) {
+        croak("[GRAPH.DELETE] $error");
+    }
+    return defined $res && $res eq 'OK';
 }
 
 sub list_graphs {
     my ($self) = @_;
-    my $res = $self->{redis}->__std_cmd("GRAPH.LIST");
+    my ($res, $error) = $self->{redis}->__std_cmd("GRAPH.LIST");
+    if (defined $error) {
+        croak("[GRAPH.LIST] $error");
+    }
     return ref $res eq 'ARRAY' ? $res : [];
 }
 
@@ -177,13 +133,13 @@ Supported arguments:
 
 =item * C<password> - Password for authentication (optional)
 
-=item * C<redis> - An existing L<Redis> object to reuse
+=item * C<redis> - An existing L<Redis::Fast> object to reuse
 
 =back
 
 =head2 redis()
 
-Returns the underlying L<Redis> client instance.
+Returns the underlying L<Redis::Fast> client instance.
 
 =head2 select_graph($name) or graph($name)
 

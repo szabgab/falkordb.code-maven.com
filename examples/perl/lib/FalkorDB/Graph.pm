@@ -32,27 +32,45 @@ sub delete {
 sub query {
     my ($self, $cypher, $params) = @_;
     my $query_str = $self->_build_query_string($cypher, $params);
-    my $raw_res = $self->db->redis->__std_cmd("GRAPH.QUERY", $self->name, $query_str);
+    my ($raw_res, $error) = $self->db->redis->__std_cmd("GRAPH.QUERY", $self->name, $query_str);
+    if (defined $error) {
+        require Carp;
+        Carp::croak("[GRAPH.QUERY] $error");
+    }
     return FalkorDB::QueryResult->new_from_raw($raw_res);
 }
 
 sub ro_query {
     my ($self, $cypher, $params) = @_;
     my $query_str = $self->_build_query_string($cypher, $params);
-    my $raw_res = $self->db->redis->__std_cmd("GRAPH.RO_QUERY", $self->name, $query_str);
+    my ($raw_res, $error) = $self->db->redis->__std_cmd("GRAPH.RO_QUERY", $self->name, $query_str);
+    if (defined $error) {
+        require Carp;
+        Carp::croak("[GRAPH.RO_QUERY] $error");
+    }
     return FalkorDB::QueryResult->new_from_raw($raw_res);
 }
 
 sub explain {
     my ($self, $cypher, $params) = @_;
     my $query_str = $self->_build_query_string($cypher, $params);
-    return $self->db->redis->__std_cmd("GRAPH.EXPLAIN", $self->name, $query_str);
+    my ($raw_res, $error) = $self->db->redis->__std_cmd("GRAPH.EXPLAIN", $self->name, $query_str);
+    if (defined $error) {
+        require Carp;
+        Carp::croak("[GRAPH.EXPLAIN] $error");
+    }
+    return $raw_res;
 }
 
 sub profile {
     my ($self, $cypher, $params) = @_;
     my $query_str = $self->_build_query_string($cypher, $params);
-    return $self->db->redis->__std_cmd("GRAPH.PROFILE", $self->name, $query_str);
+    my ($raw_res, $error) = $self->db->redis->__std_cmd("GRAPH.PROFILE", $self->name, $query_str);
+    if (defined $error) {
+        require Carp;
+        Carp::croak("[GRAPH.PROFILE] $error");
+    }
+    return $raw_res;
 }
 
 sub create_index {

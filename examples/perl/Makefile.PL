@@ -16,7 +16,7 @@ WriteMakefile(
         'Test::More' => '0',
     },
     PREREQ_PM => {
-        'Redis'        => '0',
+        'Redis::Fast'  => '0',
         'Scalar::Util' => '0',
         'JSON::PP'     => '0',
     },
