@@ -4,37 +4,39 @@ use strict;
 use warnings;
 
 sub new {
-    my ($class, %args) = @_;
+    my ( $class, %args ) = @_;
     return bless \%args, $class;
 }
 
-sub id { shift->{id} }
-sub labels { shift->{labels} }
+sub id         { shift->{id} }
+sub labels     { shift->{labels} }
 sub properties { shift->{properties} }
 
 sub property {
-    my ($self, $key) = @_;
+    my ( $self, $key ) = @_;
     return $self->{properties}->{$key};
 }
 
 sub new_from_resp {
-    my ($class, $resp) = @_;
-    my ($id, $labels, $properties);
-    
+    my ( $class, $resp ) = @_;
+    my ( $id, $labels, $properties );
+
     for my $pair (@$resp) {
-        my ($k, $v) = @$pair;
-        if ($k eq 'id') {
+        my ( $k, $v ) = @$pair;
+        if ( $k eq 'id' ) {
             $id = $v;
-        } elsif ($k eq 'labels') {
+        }
+        elsif ( $k eq 'labels' ) {
             $labels = $v;
-        } elsif ($k eq 'properties') {
+        }
+        elsif ( $k eq 'properties' ) {
             $properties = FalkorDB::QueryResult::_parse_properties($v);
         }
     }
-    
+
     return $class->new(
         id         => $id,
-        labels     => $labels || [],
+        labels     => $labels     || [],
         properties => $properties || {},
     );
 }

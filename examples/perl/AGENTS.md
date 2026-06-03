@@ -3,3 +3,18 @@
 
 * When asked to change the tests, don't change the code in the `lib` folder. Only the tests.
 * When asked to refactor the code, don't change the tests.
+
+* After every change run the following command:
+
+```
+tidyall -a --refresh-cache
+```
+
+## Testing Verification
+
+After every change verify that all the tests pass using the following command:
+
+```
+FALKORDB=falkordb:6379 prove -Ilib -lv t/
+```
+

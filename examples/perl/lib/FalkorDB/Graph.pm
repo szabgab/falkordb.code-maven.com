@@ -6,7 +6,7 @@ use Scalar::Util qw(looks_like_number);
 use FalkorDB::QueryResult;
 
 sub new {
-    my ($class, $db, $name) = @_;
+    my ( $class, $db, $name ) = @_;
     my $self = {
         db   => $db,
         name => $name,
@@ -26,14 +26,14 @@ sub name {
 
 sub delete {
     my ($self) = @_;
-    return $self->db->delete_graph($self->name);
+    return $self->db->delete_graph( $self->name );
 }
 
 sub query {
-    my ($self, $cypher, $params) = @_;
-    my $query_str = $self->_build_query_string($cypher, $params);
-    my ($raw_res, $error) = $self->db->redis->__std_cmd("GRAPH.QUERY", $self->name, $query_str);
-    if (defined $error) {
+    my ( $self, $cypher, $params ) = @_;
+    my $query_str = $self->_build_query_string( $cypher, $params );
+    my ( $raw_res, $error ) = $self->db->redis->__std_cmd( "GRAPH.QUERY", $self->name, $query_str );
+    if ( defined $error ) {
         require Carp;
         Carp::croak("[GRAPH.QUERY] $error");
     }
@@ -41,10 +41,11 @@ sub query {
 }
 
 sub ro_query {
-    my ($self, $cypher, $params) = @_;
-    my $query_str = $self->_build_query_string($cypher, $params);
-    my ($raw_res, $error) = $self->db->redis->__std_cmd("GRAPH.RO_QUERY", $self->name, $query_str);
-    if (defined $error) {
+    my ( $self, $cypher, $params ) = @_;
+    my $query_str = $self->_build_query_string( $cypher, $params );
+    my ( $raw_res, $error ) =
+      $self->db->redis->__std_cmd( "GRAPH.RO_QUERY", $self->name, $query_str );
+    if ( defined $error ) {
         require Carp;
         Carp::croak("[GRAPH.RO_QUERY] $error");
     }
@@ -52,10 +53,11 @@ sub ro_query {
 }
 
 sub explain {
-    my ($self, $cypher, $params) = @_;
-    my $query_str = $self->_build_query_string($cypher, $params);
-    my ($raw_res, $error) = $self->db->redis->__std_cmd("GRAPH.EXPLAIN", $self->name, $query_str);
-    if (defined $error) {
+    my ( $self, $cypher, $params ) = @_;
+    my $query_str = $self->_build_query_string( $cypher, $params );
+    my ( $raw_res, $error ) =
+      $self->db->redis->__std_cmd( "GRAPH.EXPLAIN", $self->name, $query_str );
+    if ( defined $error ) {
         require Carp;
         Carp::croak("[GRAPH.EXPLAIN] $error");
     }
@@ -63,10 +65,11 @@ sub explain {
 }
 
 sub profile {
-    my ($self, $cypher, $params) = @_;
-    my $query_str = $self->_build_query_string($cypher, $params);
-    my ($raw_res, $error) = $self->db->redis->__std_cmd("GRAPH.PROFILE", $self->name, $query_str);
-    if (defined $error) {
+    my ( $self, $cypher, $params ) = @_;
+    my $query_str = $self->_build_query_string( $cypher, $params );
+    my ( $raw_res, $error ) =
+      $self->db->redis->__std_cmd( "GRAPH.PROFILE", $self->name, $query_str );
+    if ( defined $error ) {
         require Carp;
         Carp::croak("[GRAPH.PROFILE] $error");
     }
@@ -74,79 +77,81 @@ sub profile {
 }
 
 sub create_index {
-    my ($self, $label, $property) = @_;
+    my ( $self, $label, $property ) = @_;
     return $self->query("CREATE INDEX FOR (n:$label) ON (n.$property)");
 }
 
 sub drop_index {
-    my ($self, $label, $property) = @_;
+    my ( $self, $label, $property ) = @_;
     return $self->query("DROP INDEX FOR (n:$label) ON (n.$property)");
 }
 
 # --- Parameter Serialization ---
 
 sub _build_query_string {
-    my ($self, $cypher, $params) = @_;
-    
+    my ( $self, $cypher, $params ) = @_;
+
     return $cypher unless $params && ref $params eq 'HASH';
-    
+
     my @serialized;
-    while (my ($k, $v) = each %$params) {
+    while ( my ( $k, $v ) = each %$params ) {
         push @serialized, "$k=" . _serialize_param($v);
     }
-    
+
     if (@serialized) {
-        return "CYPHER " . join(" ", @serialized) . " " . $cypher;
+        return "CYPHER " . join( " ", @serialized ) . " " . $cypher;
     }
-    
+
     return $cypher;
 }
 
 sub _serialize_param {
     my ($val) = @_;
-    
-    if (!defined $val) {
+
+    if ( !defined $val ) {
         return 'null';
     }
-    
-    if (ref $val) {
+
+    if ( ref $val ) {
         my $ref_type = ref $val;
-        
+
         # Handle boolean wrappers (e.g. JSON::PP::Boolean, Types::Serialiser::Boolean)
-        if ($ref_type eq 'JSON::PP::Boolean' || $ref_type eq 'Types::Serialiser::Boolean') {
+        if (   $ref_type eq 'JSON::PP::Boolean'
+            || $ref_type eq 'Types::Serialiser::Boolean' )
+        {
             return $$val ? 'true' : 'false';
         }
-        elsif ($ref_type eq 'ARRAY') {
+        elsif ( $ref_type eq 'ARRAY' ) {
             my @elems = map { _serialize_param($_) } @$val;
-            return '[' . join(', ', @elems) . ']';
+            return '[' . join( ', ', @elems ) . ']';
         }
-        elsif ($ref_type eq 'HASH') {
+        elsif ( $ref_type eq 'HASH' ) {
             my @pairs;
-            while (my ($k, $v) = each %$val) {
+            while ( my ( $k, $v ) = each %$val ) {
                 my $safe_key = $k;
-                if ($k =~ /[^a-zA-Z0-9_]/) {
+                if ( $k =~ /[^a-zA-Z0-9_]/ ) {
                     $safe_key = "`$k`";
                 }
                 push @pairs, "$safe_key: " . _serialize_param($v);
             }
-            return '{' . join(', ', @pairs) . '}';
+            return '{' . join( ', ', @pairs ) . '}';
         }
         else {
             # Stringify fallback for unrecognized references
             return '"' . _escape_string("$val") . '"';
         }
     }
-    
+
     # Check for boolean keywords passed as strings
-    if ($val eq 'true' || $val eq 'false') {
+    if ( $val eq 'true' || $val eq 'false' ) {
         return $val;
     }
-    
+
     # Check if value is numeric (so we avoid quoting it)
-    if (looks_like_number($val) && $val !~ /^0\d+/) {
+    if ( looks_like_number($val) && $val !~ /^0\d+/ ) {
         return $val;
     }
-    
+
     # Default: quote as string
     return '"' . _escape_string($val) . '"';
 }

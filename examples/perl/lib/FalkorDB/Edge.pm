@@ -4,40 +4,44 @@ use strict;
 use warnings;
 
 sub new {
-    my ($class, %args) = @_;
+    my ( $class, %args ) = @_;
     return bless \%args, $class;
 }
 
-sub id { shift->{id} }
-sub type { shift->{type} }
-sub src_node { shift->{src_node} }
-sub dest_node { shift->{dest_node} }
+sub id         { shift->{id} }
+sub type       { shift->{type} }
+sub src_node   { shift->{src_node} }
+sub dest_node  { shift->{dest_node} }
 sub properties { shift->{properties} }
 
 sub property {
-    my ($self, $key) = @_;
+    my ( $self, $key ) = @_;
     return $self->{properties}->{$key};
 }
 
 sub new_from_resp {
-    my ($class, $resp) = @_;
-    my ($id, $type, $src_node, $dest_node, $properties);
-    
+    my ( $class, $resp ) = @_;
+    my ( $id, $type, $src_node, $dest_node, $properties );
+
     for my $pair (@$resp) {
-        my ($k, $v) = @$pair;
-        if ($k eq 'id') {
+        my ( $k, $v ) = @$pair;
+        if ( $k eq 'id' ) {
             $id = $v;
-        } elsif ($k eq 'type') {
+        }
+        elsif ( $k eq 'type' ) {
             $type = $v;
-        } elsif ($k eq 'src_node') {
+        }
+        elsif ( $k eq 'src_node' ) {
             $src_node = $v;
-        } elsif ($k eq 'dest_node') {
+        }
+        elsif ( $k eq 'dest_node' ) {
             $dest_node = $v;
-        } elsif ($k eq 'properties') {
+        }
+        elsif ( $k eq 'properties' ) {
             $properties = FalkorDB::QueryResult::_parse_properties($v);
         }
     }
-    
+
     return $class->new(
         id         => $id,
         type       => $type,

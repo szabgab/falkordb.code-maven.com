@@ -9,37 +9,39 @@ use FalkorDB::Graph;
 our $VERSION = '0.01';
 
 sub new {
-    my ($class, %args) = @_;
-    
+    my ( $class, %args ) = @_;
+
     my $redis;
-    if ($args{redis}) {
+    if ( $args{redis} ) {
         $redis = $args{redis};
-    } else {
-        my $host = $args{host} // 'falkordb';
-        my $port = $args{port} // 6379;
+    }
+    else {
+        my $host   = $args{host} // 'falkordb';
+        my $port   = $args{port} // 6379;
         my $server = "$host:$port";
-        
-        my %redis_args = (
-            server => $server,
-        );
+
+        my %redis_args = ( server => $server, );
+
         # Only add password if it is defined and not empty
-        if (defined $args{password} && $args{password} ne '') {
+        if ( defined $args{password} && $args{password} ne '' ) {
             $redis_args{password} = $args{password};
         }
-        
+
         $redis = Redis::Fast->new(%redis_args);
-        
+
         # If username is provided, we can attempt AUTH (RESP3 uses AUTH username password)
         # But for empty username/password as requested, we don't need to authenticate.
-        if (defined $args{username} && $args{username} ne '' && defined $args{password} && $args{password} ne '') {
-            $redis->auth($args{username}, $args{password});
+        if (   defined $args{username}
+            && $args{username} ne ''
+            && defined $args{password}
+            && $args{password} ne '' )
+        {
+            $redis->auth( $args{username}, $args{password} );
         }
     }
-    
-    my $self = {
-        redis => $redis,
-    };
-    
+
+    my $self = { redis => $redis, };
+
     return bless $self, $class;
 }
 
@@ -49,19 +51,19 @@ sub redis {
 }
 
 sub select_graph {
-    my ($self, $name) = @_;
-    return FalkorDB::Graph->new($self, $name);
+    my ( $self, $name ) = @_;
+    return FalkorDB::Graph->new( $self, $name );
 }
 
 sub graph {
-    my ($self, $name) = @_;
+    my ( $self, $name ) = @_;
     return $self->select_graph($name);
 }
 
 sub delete_graph {
-    my ($self, $name) = @_;
-    my ($res, $error) = $self->{redis}->__std_cmd("GRAPH.DELETE", $name);
-    if (defined $error) {
+    my ( $self, $name )  = @_;
+    my ( $res,  $error ) = $self->{redis}->__std_cmd( "GRAPH.DELETE", $name );
+    if ( defined $error ) {
         croak("[GRAPH.DELETE] $error");
     }
     return defined $res && $res eq 'OK';
@@ -69,8 +71,8 @@ sub delete_graph {
 
 sub list_graphs {
     my ($self) = @_;
-    my ($res, $error) = $self->{redis}->__std_cmd("GRAPH.LIST");
-    if (defined $error) {
+    my ( $res, $error ) = $self->{redis}->__std_cmd("GRAPH.LIST");
+    if ( defined $error ) {
         croak("[GRAPH.LIST] $error");
     }
     return ref $res eq 'ARRAY' ? $res : [];
