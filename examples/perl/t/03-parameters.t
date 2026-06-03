@@ -1,10 +1,20 @@
 use strict;
 use warnings;
-use Test::More tests => 14;
+use Test::More;
 use FalkorDB;
 use JSON::PP;
 
-my $db = FalkorDB->new(host => 'falkordb', port => 6379);
+if (!defined $ENV{FALKORDB} || $ENV{FALKORDB} eq '') {
+    plan skip_all => 'FALKORDB environment variable is not set';
+}
+plan tests => 14;
+
+my ($host, $port) = ($ENV{FALKORDB}, 6379);
+if ($ENV{FALKORDB} =~ /^(.*):(\d+)$/) {
+    $host = $1;
+    $port = $2;
+}
+my $db = FalkorDB->new(host => $host, port => $port);
 my $graph = $db->select_graph('test_param_graph');
 
 # Clean up

@@ -1,9 +1,19 @@
 use strict;
 use warnings;
-use Test::More tests => 22;
+use Test::More;
 use FalkorDB;
 
-my $db = FalkorDB->new(host => 'falkordb', port => 6379);
+if (!defined $ENV{FALKORDB} || $ENV{FALKORDB} eq '') {
+    plan skip_all => 'FALKORDB environment variable is not set';
+}
+plan tests => 22;
+
+my ($host, $port) = ($ENV{FALKORDB}, 6379);
+if ($ENV{FALKORDB} =~ /^(.*):(\d+)$/) {
+    $host = $1;
+    $port = $2;
+}
+my $db = FalkorDB->new(host => $host, port => $port);
 my $graph_name = 'test_query_graph';
 
 # Clean up graph if it exists

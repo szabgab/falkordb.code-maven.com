@@ -1,14 +1,25 @@
 use strict;
 use warnings;
-use Test::More tests => 30;
+use Test::More;
 use FalkorDB;
 use Redis::Fast;
+
+if (!defined $ENV{FALKORDB} || $ENV{FALKORDB} eq '') {
+    plan skip_all => 'FALKORDB environment variable is not set';
+}
+plan tests => 30;
 
 # Report the skill we are using
 diag("Using skill: increase test coverage");
 
+my ($host, $port) = ($ENV{FALKORDB}, 6379);
+if ($ENV{FALKORDB} =~ /^(.*):(\d+)$/) {
+    $host = $1;
+    $port = $2;
+}
+
 # 1. Connect with existing Redis::Fast object
-my $r_fast = Redis::Fast->new(server => 'falkordb:6379');
+my $r_fast = Redis::Fast->new(server => "$host:$port");
 my $db_custom = FalkorDB->new(redis => $r_fast);
 ok(defined($db_custom), 'FalkorDB created with custom redis object');
 is($db_custom->redis, $r_fast, 'Custom redis object matches');
@@ -84,16 +95,16 @@ is_deeply($path_invalid->edges, [], 'Invalid path edges array is empty');
 # 12. Password branch coverage
 eval {
     FalkorDB->new(
-        host     => 'falkordb',
-        port     => 6379,
+        host     => $host,
+        port     => $port,
         password => 'temp_password',
     );
 };
 ok(defined($@) || 1, 'Construct with password covered');
 
 # 13. Other authentication branch variations
-eval { FalkorDB->new(host => 'falkordb', port => 6379, password => '', username => 'bar') };
-eval { FalkorDB->new(host => 'falkordb', port => 6379, password => 'foo', username => '') };
+eval { FalkorDB->new(host => $host, port => $port, password => '', username => 'bar') };
+eval { FalkorDB->new(host => $host, port => $port, password => 'foo', username => '') };
 
 # 14. Graph _build_query_string with non-hash params
 my $query_non_hash = $graph->_build_query_string("MATCH (n) RETURN n", []);
