@@ -1,0 +1,4 @@
+MATCH (n) DETACH DELETE n
+CREATE (a:Person {name: "Alice"})
+CREATE (b:Person {name: "Bob"})
+MATCH (p) RETURN p
