@@ -45,3 +45,7 @@ Or maybe this:
 (me {name:'swilly'})-[:FRIENDS_WITH*2..2]->()-[:FRIENDS_WITH]->(foaf)
 ```
 
+
+```
+docker compose exec client bash
+```
