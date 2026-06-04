@@ -3,6 +3,8 @@
 [FalkorDB](https://metacpan.org/pod/FalkorDB) perl module.
 
 
+{% embed include file="examples/perl/docker-compose.yaml" %}
+
 ```
 cd examples/perl
 docker compose up

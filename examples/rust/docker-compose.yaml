@@ -1,0 +1,23 @@
+services:
+  falkordb:
+    image: falkordb/falkordb:latest
+    container_name: falkordb-for-rust
+    ports:
+      - "6379:6379"
+      - "3000:3000"
+    volumes:
+      - ./data:/var/lib/falkordb/data
+    restart: unless-stopped
+  client:
+    image: szabgab/rust:latest
+    container_name: falkor-client-for-rust
+    depends_on:
+      - falkordb
+    stdin_open: true
+    user: ubuntu
+    tty: true
+    working_dir: /opt
+    volumes:
+      - .:/opt
+      - $HOME/.copilot/:/home/ubuntu/.copilot
+      - $HOME/.gemini/:/home/ubuntu/.gemini
