@@ -24,23 +24,45 @@ async fn delete_graph(graph: &mut AsyncGraph) -> Result<(), Box<dyn std::error::
 }
 
 async fn create(graph: &mut AsyncGraph) -> Result<(), Box<dyn std::error::Error>> {
-    let _ = graph
-        .query(
-            r#"CREATE
-           (:Rider {name:'Valentino Rossi'})-[:rides]->(:Team {name:'Yamaha'}),
-           (:Rider {name:'Dani Pedrosa'})-[:rides]->(:Team {name:'Honda'}),
-           (:Rider {name:'Andrea Dovizioso'})-[:rides]->(:Team {name:'Ducati'})"#,
-        )
-        .execute()
-        .await?;
+    // let _ = graph
+    //     .query(
+    //         r#"CREATE
+    //        (:Rider {name:'Valentino Rossi'})-[:rides]->(:Team {name:'Yamaha'}),
+    //        (:Rider {name:'Dani Pedrosa'})-[:rides]->(:Team {name:'Honda'}),
+    //        (:Rider {name:'Andrea Dovizioso'})-[:rides]->(:Team {name:'Ducati'})"#,
+    //     )
+    //     .execute()
+    //     .await?;
+
+    let pairs = vec![
+        ("Valentino Rossi", "Yamaha"),
+        ("Dani Pedrosa", "Honda"),
+        ("Andrea Dovizioso", "Ducati"),
+    ];
+    for (rider, team) in pairs {
+        let mut params = std::collections::HashMap::new();
+        params.insert(String::from("rider"), format!("'{rider}'"));
+        params.insert(String::from("team"), format!("'{team}'"));
+
+        let _ = graph
+            .query(
+                r#"MERGE (r:Rider {name: $rider})
+                   MERGE (t:Team {name: $team})
+                   MERGE (r)-[:rides]->(t)"#,
+            )
+            .with_params(&params)
+            .execute()
+            .await?;
+    }
+
     Ok(())
 }
 
 async fn get_yamaha(graph: &mut AsyncGraph) -> Result<(), Box<dyn std::error::Error>> {
     // Query which riders represent Yamaha?
-    let team_name = String::from("'Yamaha'");
+    let team_name = String::from("Yamaha");
     let mut params = std::collections::HashMap::new();
-    params.insert(String::from("team"), team_name);
+    params.insert(String::from("team"), format!("'{team_name}'"));
 
     let mut nodes = graph
         .query(
