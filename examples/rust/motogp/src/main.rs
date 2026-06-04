@@ -38,6 +38,8 @@ async fn create(graph: &mut AsyncGraph) -> Result<(), Box<dyn std::error::Error>
         ("Valentino Rossi", "Yamaha"),
         ("Dani Pedrosa", "Honda"),
         ("Andrea Dovizioso", "Ducati"),
+        // ("d'Aartagnan", "Horse"),
+        // Error: RedisError("Invalid input 'A': expected ';', ':', a statement option, a query hint, call clause, a clause or a schema command line: 1, column: 1, offset: 0 errCtx: Aartagnan' MERGE (r:Rider {name: $rider}) errCtxOffset: 0")
     ];
     for (rider, team) in pairs {
         let mut params = std::collections::HashMap::new();

@@ -5,3 +5,4 @@ book/
 /html/
 __pycache__
 uv.lock
+examples/rust/data/
