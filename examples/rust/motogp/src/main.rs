@@ -1,4 +1,4 @@
-use falkordb::{FalkorAsyncClient, FalkorClientBuilder, FalkorConnectionInfo};
+use falkordb::{AsyncGraph, FalkorAsyncClient, FalkorClientBuilder, FalkorConnectionInfo};
 
 async fn get_client() -> Result<FalkorAsyncClient, Box<dyn std::error::Error>> {
     let mut hostname = std::env::var("FALKORDB").unwrap_or_else(|_| "127.0.0.1".to_string());
@@ -18,17 +18,13 @@ async fn get_client() -> Result<FalkorAsyncClient, Box<dyn std::error::Error>> {
     Ok(client)
 }
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let client = get_client().await?;
-
-    // Select the 'MotoGP' graph
-    let mut graph = client.select_graph("MotoGP");
-
-    // Clear out this graph in case you've run this script before.
+async fn delete_graph(graph: &mut AsyncGraph) -> Result<(), Box<dyn std::error::Error>> {
     graph.delete().await?;
+    Ok(())
+}
 
-    graph
+async fn create(graph: &mut AsyncGraph) -> Result<(), Box<dyn std::error::Error>> {
+    let _ = graph
         .query(
             r#"CREATE
            (:Rider {name:'Valentino Rossi'})-[:rides]->(:Team {name:'Yamaha'}),
@@ -37,7 +33,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         )
         .execute()
         .await?;
+    Ok(())
+}
 
+async fn get_yamaha(graph: &mut AsyncGraph) -> Result<(), Box<dyn std::error::Error>> {
     // Query which riders represent Yamaha?
     let mut nodes = graph
         .query(
@@ -51,7 +50,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     for node in nodes.data.by_ref() {
         println!("{:?}", node);
     }
+    Ok(())
+}
 
+async fn riders(graph: &mut AsyncGraph) -> Result<(), Box<dyn std::error::Error>> {
     // Query how many riders represent team Ducati?
     let mut nodes = graph
         .query(r#"MATCH (r:Rider)-[:rides]->(t:Team {name:'Ducati'}) RETURN count(r)"#)
@@ -60,6 +62,42 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     for node in nodes.data.by_ref() {
         println!("{:?}", node);
+    }
+    Ok(())
+}
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let client = get_client().await?;
+
+    // Select the 'MotoGP' graph
+    let mut graph = client.select_graph("MotoGP");
+
+    let args = std::env::args().collect::<Vec<String>>();
+
+    if args.len() != 2 {
+        eprintln!("Usage: {} <delete|create|yamaha|riders>", args[0]);
+        std::process::exit(1);
+    }
+    let cmd = &args[1];
+
+    match cmd as &str {
+        "delete" => {
+            delete_graph(&mut graph).await?;
+        }
+        "create" => {
+            create(&mut graph).await?;
+        }
+        "yamaha" => {
+            get_yamaha(&mut graph).await?;
+        }
+        "riders" => {
+            riders(&mut graph).await?;
+        }
+        _ => {
+            eprintln!("Unknown command: {}", cmd);
+            std::process::exit(1);
+        }
     }
 
     Ok(())
