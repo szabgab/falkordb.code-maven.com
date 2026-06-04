@@ -9,11 +9,32 @@ my $db = FalkorDB->new(
     port => 6379,
 );
 
-my $graph = $db->select_graph('Example');
-
 my $cmd = shift or usage();
 
-if ($cmd eq "add") {
+main();
+exit(0);
+
+
+sub main {
+    my $graph = $db->select_graph('Example');
+
+    my %DISP = (
+        add => \&add_person,
+        del => \&del_everything,
+        list => \&list,
+    );
+
+    if ($DISP{$cmd}) {
+        $DISP{$cmd}->($graph);
+    } else {
+        usage();
+    }
+
+}
+
+sub add_person {
+    my ($graph) = @_;
+
     my $res = $graph->query("CREATE (p:Person {name: 'Alice', age: 30}) RETURN p");
     while (my $row = $res->next_row()) {
         for my $node (@$row) {
@@ -21,9 +42,17 @@ if ($cmd eq "add") {
             print "Added Person: $name ($age)\n";
         }
     }
-} elsif ($cmd eq "del") {
+}
+
+sub del_everything {
+    my ($graph) = @_;
+
     $graph->query("MATCH (n) DETACH DELETE n");
-} elsif ($cmd eq "list") {
+}
+
+sub list {
+    my ($graph) = @_;
+
     # Execute a parameterized read query
     my $res = $graph->query(
         "MATCH (p:Person) WHERE p.age = \$age RETURN p.name, p.age",
