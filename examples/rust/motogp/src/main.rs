@@ -1,9 +1,12 @@
-use falkordb::{FalkorClientBuilder, FalkorConnectionInfo};
+use falkordb::{FalkorAsyncClient, FalkorClientBuilder, FalkorConnectionInfo};
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // Connect to FalkorDB
-    let connection_info: FalkorConnectionInfo = "falkor://127.0.0.1:6379"
+async fn get_client() -> Result<FalkorAsyncClient, Box<dyn std::error::Error>> {
+    let mut hostname = std::env::var("FALKORDB").unwrap_or_else(|_| "127.0.0.1".to_string());
+    if !hostname.contains(':') {
+        hostname.push_str(":6379");
+    }
+
+    let connection_info: FalkorConnectionInfo = format!("falkor://{}", hostname)
         .try_into()
         .expect("Invalid connection info");
 
@@ -11,6 +14,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .with_connection_info(connection_info)
         .build()
         .await?;
+
+    Ok(client)
+}
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let client = get_client().await?;
 
     // Select the 'MotoGP' graph
     let mut graph = client.select_graph("MotoGP");
@@ -54,4 +64,3 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
-
