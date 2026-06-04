@@ -18,4 +18,6 @@
   - [MotoGP in Rust](./rust-motogp.md)
   - [Manual in Rust](./rust-manual.md)
   - [Movies](./rust-movies.md)
+- [Perl](./perl.md)
+  - [Example](./perl-example.md)
 

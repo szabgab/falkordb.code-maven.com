@@ -7,11 +7,10 @@ services:
       - "3000:3000"
     volumes:
       - ./data:/var/lib/falkordb/data
-    environment:
-      REDIS_ARGS: "--appendonly yes"
+    #environment:
+    #  REDIS_ARGS: "--appendonly yes"
     restart: unless-stopped
   client:
-    #image: redis:latest
     image: szabgab/perl:latest
     container_name: falkor-client-for-perl
     depends_on:
