@@ -66,6 +66,36 @@ async fn riders(graph: &mut AsyncGraph) -> Result<(), Box<dyn std::error::Error>
     Ok(())
 }
 
+async fn list_all(graph: &mut AsyncGraph) -> Result<(), Box<dyn std::error::Error>> {
+    let mut nodes = graph
+        .query(r#"MATCH (r:Rider)-[:rides]->(t:Team) RETURN r, t"#)
+        .execute()
+        .await?;
+
+    for node in nodes.data.by_ref() {
+        let rider = &node[0];
+        let team = &node[1];
+        let rider_name = rider
+            .as_node()
+            .unwrap()
+            .properties
+            .get("name")
+            .unwrap()
+            .as_string()
+            .unwrap();
+        let team_name = team
+            .as_node()
+            .unwrap()
+            .properties
+            .get("name")
+            .unwrap()
+            .as_string()
+            .unwrap();
+        println!("{rider_name:20}  rides {team_name}");
+    }
+    Ok(())
+}
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let client = get_client().await?;
@@ -76,7 +106,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = std::env::args().collect::<Vec<String>>();
 
     if args.len() != 2 {
-        eprintln!("Usage: {} <delete|create|yamaha|riders>", args[0]);
+        eprintln!("Usage: {} <delete|create|yamaha|riders|list>", args[0]);
         std::process::exit(1);
     }
     let cmd = &args[1];
@@ -93,6 +123,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
         "riders" => {
             riders(&mut graph).await?;
+        }
+        "list" => {
+            list_all(&mut graph).await?;
         }
         _ => {
             eprintln!("Unknown command: {}", cmd);
