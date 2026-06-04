@@ -38,12 +38,17 @@ async fn create(graph: &mut AsyncGraph) -> Result<(), Box<dyn std::error::Error>
 
 async fn get_yamaha(graph: &mut AsyncGraph) -> Result<(), Box<dyn std::error::Error>> {
     // Query which riders represent Yamaha?
+    let team_name = String::from("'Yamaha'");
+    let mut params = std::collections::HashMap::new();
+    params.insert(String::from("team"), team_name);
+
     let mut nodes = graph
         .query(
             r#"MATCH (r:Rider)-[:rides]->(t:Team)
-                 WHERE t.name = 'Yamaha'
+                 WHERE t.name = $team
                  RETURN r.name"#,
         )
+        .with_params(&params)
         .execute()
         .await?;
 
