@@ -1,3 +1,3 @@
 # Interactive shell
 
-{% embed include file="examples/python-demo/falkordb_shell.py" %}
+{% embed include file="examples/python/falkordb_shell.py" %}

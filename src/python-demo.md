@@ -1,3 +1,3 @@
 # Demo
 
-{% embed include file="examples/python-demo/demo.py" %}
+{% embed include file="examples/python/demo.py" %}

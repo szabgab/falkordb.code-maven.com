@@ -5,7 +5,7 @@ This example is based on the one on the front page of the [FalkorDB documentatio
 Run the following to show the "usage":
 
 ```shell
-$ cd examples/python-demo
+$ cd examples/python
 $ uv run motogp.py
 ```
 
@@ -20,6 +20,6 @@ The `main` function sets up the connection to the database and selects the graph
 * `$ uv run motogp.py ducati` - How many riders represent team Ducati? - An aggregator.
 
 
-{% embed include file="examples/python-demo/motogp.py" %}
+{% embed include file="examples/python/motogp.py" %}
 
 

@@ -1,5 +1,5 @@
 # Python dependencies
 
-{% embed include file="examples/python-demo/pypi_dependencies.py" %}
+{% embed include file="examples/python/pypi_dependencies.py" %}
 
 

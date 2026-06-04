@@ -9,4 +9,4 @@ Joe knows Mary
 
 
 
-{% embed include file="examples/python-demo/examples.py" %}
+{% embed include file="examples/python/examples.py" %}

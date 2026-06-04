@@ -1,6 +1,6 @@
 # People and cities
 
-{% embed include file="examples/python-demo/people.py" %}
+{% embed include file="examples/python/people.py" %}
 
 ```shell
 $ uv run people.py
