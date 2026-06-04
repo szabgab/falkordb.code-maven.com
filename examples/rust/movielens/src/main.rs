@@ -83,7 +83,7 @@ async fn main() -> AppResult<()> {
     let report_to_run = cli.report.filter(|report_id| *report_id != REPORT_MENU_ID);
     let needs_graph = cli.delete || cli.load || report_to_run.is_some();
 
-    if needs_graph {        
+    if needs_graph {
         let mut hostname = std::env::var("FALKORDB").unwrap_or_else(|_| "127.0.0.1".to_string());
         if !hostname.contains(':') {
             hostname.push_str(":6379");

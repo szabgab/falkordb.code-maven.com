@@ -18,6 +18,7 @@
   - [MotoGP in Rust](./rust-motogp.md)
   - [Manual in Rust](./rust-manual.md)
   - [Movies](./rust-movies.md)
+  - [BioGrid](./rust-biogrid.md)
 - [Perl](./perl.md)
   - [Example](./perl-example.md)
 
