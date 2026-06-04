@@ -9,6 +9,14 @@ my $db = FalkorDB->new(
     port => 6379,
 );
 
+my %DISP = (
+    add => \&add_person,
+    del => \&del_everything,
+    list => \&list,
+    people => \&add_people,
+    all => \&list_all,
+);
+
 my $cmd = shift or usage();
 
 main();
@@ -18,18 +26,21 @@ exit(0);
 sub main {
     my $graph = $db->select_graph('Example');
 
-    my %DISP = (
-        add => \&add_person,
-        del => \&del_everything,
-        list => \&list,
-    );
-
     if ($DISP{$cmd}) {
         $DISP{$cmd}->($graph);
     } else {
         usage();
     }
 
+}
+
+sub add_people {
+    my ($graph) = @_;
+
+    my @people = ("Joe", "Jane", "Mary", "q'ote", 'Other"quote');
+    for my $person_name (@people) {
+        $graph->query("CREATE (:Person {name: \$name})", { name => $person_name });
+    }
 }
 
 sub add_person {
@@ -65,7 +76,21 @@ sub list {
     }
 }
 
+sub list_all {
+    my ($graph) = @_;
+
+    my $res = $graph->query(
+        "MATCH (p:Person) RETURN p",
+    );
+    while (my $row = $res->next_row()) {
+        for my $node (@$row) {
+            print "Found Person: $node->{properties}{name}\n";
+        }
+    }
+}
+
 
 sub usage {
-    die "Usage: $0 [add|list|del]\n";
+    my $params = join "|", sort keys %DISP;
+    die "Usage: $0 [$params]\n";
 }
