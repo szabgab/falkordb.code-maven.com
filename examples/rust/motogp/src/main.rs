@@ -41,10 +41,10 @@ async fn create(graph: &mut AsyncGraph) -> Result<(), Box<dyn std::error::Error>
         // ("d'Aartagnan", "Horse"),
         // Error: RedisError("Invalid input 'A': expected ';', ':', a statement option, a query hint, call clause, a clause or a schema command line: 1, column: 1, offset: 0 errCtx: Aartagnan' MERGE (r:Rider {name: $rider}) errCtxOffset: 0")
     ];
-    for (rider, team) in pairs {
+    for (rider_name, team_name) in pairs {
         let mut params = std::collections::HashMap::new();
-        params.insert(String::from("rider"), format!("'{rider}'"));
-        params.insert(String::from("team"), format!("'{team}'"));
+        params.insert(String::from("rider"), format!("'{rider_name}'"));
+        params.insert(String::from("team"), format!("'{team_name}'"));
 
         let _ = graph
             .query(
@@ -96,14 +96,14 @@ async fn riders(graph: &mut AsyncGraph) -> Result<(), Box<dyn std::error::Error>
 }
 
 async fn list_all(graph: &mut AsyncGraph) -> Result<(), Box<dyn std::error::Error>> {
-    let mut nodes = graph
+    let mut res = graph
         .query(r#"MATCH (r:Rider)-[:rides]->(t:Team) RETURN r, t"#)
         .execute()
         .await?;
 
-    for node in nodes.data.by_ref() {
-        let rider = &node[0];
-        let team = &node[1];
+    for row in res.data.by_ref() {
+        let rider = &row[0];
+        let team = &row[1];
         let rider_name = rider
             .as_node()
             .unwrap()
